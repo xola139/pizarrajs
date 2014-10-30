@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Pizarra</title>
+    <style>
+        #contenido{
+            display:block;
+        }
+    </style>
+</head>
+<body>
+    <h2>Pizarra websocket</h2>
+    <button id="limpiar">Limpiar</button>
+    <div id="contenido" align="center">
+        <canvas id="canvas" height="600" width="800">
+            Tu navegador es obsoleto
+        </canvas>
+    </div>
+
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/pizarra.js"></script>
+</body>
+</html>
