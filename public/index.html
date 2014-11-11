@@ -4,15 +4,58 @@
     <meta charset="UTF-8">
     <title>Pizarra</title>
     <style>
+        body{
+            background-color: whitesmoke;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        #limpiar{
+            display: inline-block;
+            background-color: #0E8054;
+            border-radius: 5px;
+            border : none;
+            padding: 15px;
+            color : white;
+            cursor:pointer;
+        }
+        #canvas{
+            padding-top: 10px;
+        }
         #contenido{
-            display:block;
+            display:none;
+        }
+        #listaUsuarios{
+            float: left;
+            background-color: #0E8054;
+            padding: 1%;
+            margin-left: 15px;
+            border-radius: 5px;
+            color:white;
+        }
+        .activo{
+            background-color: orangered;
         }
     </style>
 </head>
 <body>
-    <h2>Pizarra websocket</h2>
-    <button id="limpiar">Limpiar</button>
+
+    <div align="center">
+
+        <div id="registro">
+            <form id="registroFormulario">
+                <h2>Pizarra websocket</h2>
+                <p>Ingrese un nombre de usuario:</p>
+                <input id="nickname" />
+                <input type="submit" value="Entrar"/>
+                <p id="nickError"></p>
+            </form>
+        </div>
+
+    </div>
+
     <div id="contenido" align="center">
+        <div id="listaUsuarios"><h2>Conectados</h2></div>
+        <button id="limpiar">Limpiar</button><br>
+
         <canvas id="canvas" height="600" width="800">
             Tu navegador es obsoleto
         </canvas>

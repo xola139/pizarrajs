@@ -1,77 +1,93 @@
-'use strict';
 
 //iniciamos los objetos y variables necesarias
+var registroFrm = $('#registroFormulario'); //objeto del formulario de registro
+var nickname = $('#nickname'); //input
+
 var canvas = null, ctx = null, container = null;
 var socket = io.connect('/');
 var btnLimpiar = null;
 var click = false , block = false; /* Las variables click y block funcionan de forma que cuando un usuario esta dibujando,
                                         los demás deben esperar a que este termine el trazo para poder dibujar ellos */
+var miUsuario = null;
 
 function iniciar() {
-    canvas = document.getElementById('canvas');
+    canvas = document.getElementById("canvas");
     container = canvas.parentElement;
     ctx = canvas.getContext('2d');
-    console.log("variables inicializadas");
     btnLimpiar = document.getElementById("limpiar");
 
-    window.addEventListener("resize", canvasResponsive);
-    canvasResponsive();
 }
 
+registroFrm.submit(function(e){
+    e.preventDefault();
+    miUsuario = nickname.val();
 
+    socket.emit('nuevo usuario', miUsuario, function(data){
+        if(data != false){
+            $('#registro').hide();
+            $('#contenido').show();
+            $('#nickError').html('ok');
+            iniciarEscuchas();
+            limpiarPizarra();
+        }else{
+            $('#nickError').html('El nombre de usuario ya esta en uso');
+        }
+    });
+
+});
 /*
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  ========================= interaccion con el servidor =========================
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  */
+ function iniciarEscuchas(){
+     //Al darle click al botón limpiar enviamos orden de devolver la pizarra a su estado inicial.
+     btnLimpiar.addEventListener("click",function(){
 
+         if(!block){
+             socket.emit('limpiar',true);
+         }
+
+     },false);
+
+     //Al clickar en la pizarra enviamos el punto de inicio del trazo
+     canvas.addEventListener("mousedown",function(coord){
+
+         if(!block){
+             socket.emit('comenzarTrazo',{x : coord.x, y : coord.y});
+             click = true;
+             comenzarTrazo(coord);
+         }
+
+     },false);
+
+     //Al mover el ratón mientras esta clickado enviamos coordenadas donde continuar el trazo.
+     canvas.addEventListener("mousemove",function(coord){
+
+         if(click){
+             if(!block){
+                 socket.emit('dibujar',{ punto: { x : coord.x, y : coord.y }, usuario: miUsuario});
+                 pintar(coord);
+             }
+         }
+
+     },false);
+
+     //Al soltar el click (dentro o fuera del canvas) enviamos orden de terminar el trazo
+     window.addEventListener("mouseup",function(coord){
+
+         if(!block){
+             socket.emit('terminarTrazo',{ punto: { x : coord.x, y : coord.y }, usuario: miUsuario});
+             click = false;
+             terminarTrazo(coord);
+         }
+
+     },false);
+
+
+ }
 
 //Usamos la librería socket.io para comunicarnos con el servidor mediante websockets
-socket.on('connect', function(){
-
-    //Al darle click al botón limpiar enviamos orden de devolver la pizarra a su estado inicial.
-    btnLimpiar.addEventListener("click",function(){
-
-        if(!block){
-            socket.emit('limpiar',true);
-        }
-
-    },false);
-
-    //Al clickar en la pizarra enviamos el punto de inicio del trazo
-    canvas.addEventListener("mousedown",function(coord){
-
-        if(!block){
-            socket.emit('comenzarTrazo',{x : coord.x, y : coord.y});
-            click = true;
-            comenzarTrazo(coord);
-        }
-
-    },false);
-
-    //Al soltar el click (dentro o fuera del canvas) enviamos orden de terminar el trazo
-    window.addEventListener("mouseup",function(coord){
-
-        if(!block){
-            socket.emit('terminarTrazo',{x : coord.x, y : coord.y});
-            click = false;
-            terminarTrazo(coord);
-        }
-
-    },false);
-
-    //Al mover el ratón mientras esta clickado enviamos coordenadas donde continuar el trazo.
-    canvas.addEventListener("mousemove",function(coord){
-
-        if(click){
-            if(!block){
-                socket.emit('dibujar',{x : coord.x, y : coord.y});
-                pintar(coord);
-            }
-        }
-
-    },false);
-
 
     //Recibimos mediante websockets las ordenes de dibujo
 
@@ -82,28 +98,45 @@ socket.on('connect', function(){
         }
     });
 
-    socket.on('arriba',function(coord){
+    socket.on('arriba',function(datos){
         if(!click){
             block = false;
-            terminarTrazo(coord);
+            terminarTrazo(datos.punto);
+            removerUsuarioActivo(datos.usuario);
         }
     });
 
-    socket.on('mover',function(coord){
+    socket.on('mover',function(datos){
         if(block){
-            pintar(coord);
+            pintar(datos.punto);
         }
+        pintarUsuarioActivo(datos.usuario);
     });
 
     socket.on('limpiar',limpiarPizarra);
 
-});
+    socket.on('usuarios', function(data){
+        var contenido = '<h2>Conectados</h2> <ul>';
+
+        for(i=0;i<data.length;i++){
+            contenido += '<li id='+data[i].nombre+'>'+data[i].nombre + '</li>';
+        }
+        contenido += '</ul>';
+        $("#listaUsuarios").html(contenido);
+    });
+
 
 /*
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    ============================== Metodos de pintado =============================
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  */
+function pintarUsuarioActivo(usuario){
+    $('#'+usuario).addClass('activo');
+}
+function removerUsuarioActivo(usuario){
+    $('#'+usuario).removeClass('activo');
+}
 
 //Se inicia al trazo en las coordenadas indicadas.
 function comenzarTrazo(coord){
@@ -126,19 +159,11 @@ function pintar(coord){
     ctx.stroke();
 
 }
-//vuelve a pintar el rectangulo gris en el canvas
+//vuelve a pintar el rectangulo del fondo en el canvas
 function limpiarPizarra(){
-    ctx.fillStyle = '#222';
+    ctx.fillStyle = '#002F27';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-
-/* para adaptar el canvas a diferentes pantallas  */
-
-function canvasResponsive(){
-    canvas.width = container.offsetWidth; //max width
-    canvas.height = container.offsetHeight; //max height
-    limpiarPizarra();
-}
 
 iniciar();
