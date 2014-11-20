@@ -10,6 +10,8 @@ var click = false , block = false; /* Las variables click y block funcionan de f
                                         los demás deben esperar a que este termine el trazo para poder dibujar ellos */
 var miUsuario = null;
 
+var pincel = 5, colorPincel = "#fff";
+
 function iniciar() {
     canvas = document.getElementById("canvas");
     container = canvas.parentElement;
@@ -54,9 +56,11 @@ registroFrm.submit(function(e){
      canvas.addEventListener("mousedown",function(coord){
 
          if(!block){
-             socket.emit('comenzarTrazo',{x : coord.x, y : coord.y});
+             var datos = {x : coord.x, y : coord.y, color: colorPincel, tamano: pincel};
+
+             socket.emit('comenzarTrazo', datos);
              click = true;
-             comenzarTrazo(coord);
+             comenzarTrazo(datos);
          }
 
      },false);
@@ -66,8 +70,10 @@ registroFrm.submit(function(e){
 
          if(click){
              if(!block){
-                 socket.emit('dibujar',{ punto: { x : coord.x, y : coord.y }, usuario: miUsuario});
-                 pintar(coord);
+                var datos = { punto: { x : coord.x, y : coord.y }, usuario: miUsuario, color: colorPincel, tamano: pincel};
+
+                 socket.emit('dibujar',datos);
+                 pintar(datos);
              }
          }
 
@@ -91,24 +97,24 @@ registroFrm.submit(function(e){
 
     //Recibimos mediante websockets las ordenes de dibujo
 
-    socket.on('abajo',function(coord){
+    socket.on('abajo',function(datos){
         if(!click){
             block = true;
-            comenzarTrazo(coord);
+            comenzarTrazo(datos);
         }
     });
 
     socket.on('arriba',function(datos){
         if(!click){
             block = false;
-            terminarTrazo(datos.punto);
+            terminarTrazo();
             removerUsuarioActivo(datos.usuario);
         }
     });
 
     socket.on('mover',function(datos){
         if(block){
-            pintar(datos.punto);
+            pintar(datos);
         }
         pintarUsuarioActivo(datos.usuario);
     });
@@ -139,23 +145,23 @@ function removerUsuarioActivo(usuario){
 }
 
 //Se inicia al trazo en las coordenadas indicadas.
-function comenzarTrazo(coord){
+function comenzarTrazo(datos){
     ctx.beginPath();
-    ctx.strokeStyle = "#fff";
+    ctx.strokeStyle = datos.color;
     ctx.lineCap = "round";
-    ctx.lineWidth = 5;
-    ctx.moveTo(coord.x - canvas.offsetLeft, coord.y - canvas.offsetTop);
+    ctx.lineWidth = datos.tamano;
+    ctx.moveTo(datos.x - canvas.offsetLeft, datos.y - canvas.offsetTop);
 }
 
 //Se termina el trazo.
-function terminarTrazo(coord){
+function terminarTrazo(){
     ctx.closePath();
 }
 
 //Dibujamos el trazo recibiendo la posición actual del ratón.
-function pintar(coord){
+function pintar(datos){
 
-    ctx.lineTo(coord.x - canvas.offsetLeft, coord.y - canvas.offsetTop);
+    ctx.lineTo(datos.punto.x - canvas.offsetLeft, datos.punto.y - canvas.offsetTop);
     ctx.stroke();
 
 }
@@ -165,5 +171,24 @@ function limpiarPizarra(){
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+function cambiarColorPincel(id){
+    switch(id){
+        case 1: //rojo
+            colorPincel = "#FF0000";
+            break;
+        case 2://amarillo
+            colorPincel = "#FFD700";
+            break;
+        case 3://azul
+            colorPincel = "#00BFFF";
+            break;
+        case 4://blanco
+            colorPincel = "#FFF";
+            break;
+        case 5: //borrador
+            colorPincel = "#002F27";
+            break;
+    }
+}
 
 iniciar();
