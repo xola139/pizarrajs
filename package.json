@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
-    "socket.io": "^1.2.0",
-    "express": "^4.10.1"
+    "express": "^4.10.1",
+    "socket.io": "^1.2.0"
   },
   "devDependencies": {},
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/gengue/pizarra"
+    "url": ""
   },
   "author": "Genesis Guerrero",
   "license": "MIT"

@@ -10,7 +10,7 @@ var click = false , block = false; /* Las variables click y block funcionan de f
                                         los demás deben esperar a que este termine el trazo para poder dibujar ellos */
 var miUsuario = null;
 
-var pincel = 5, colorPincel = "#fff";
+var pincel = 1, colorPincel = "#fff";
 
 function iniciar() {
     canvas = document.getElementById("canvas");
@@ -79,6 +79,46 @@ registroFrm.submit(function(e){
 
      },false);
 
+
+// Set up touch events for mobile, etc
+canvas.addEventListener("touchstart", function (e) {
+    mousePos = getTouchPos(canvas, e);
+    var touch = e.touches[0];
+    var mouseEvent = new MouseEvent("mousedown", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+        });
+    canvas.dispatchEvent(mouseEvent);
+}, false);
+
+
+canvas.addEventListener("touchend", function (e) {
+    var mouseEvent = new MouseEvent("mouseup", {});
+    canvas.dispatchEvent(mouseEvent);
+}, false);
+
+
+canvas.addEventListener("touchmove", function (e) {
+    var touch = e.touches[0];
+    var mouseEvent = new MouseEvent("mousemove", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+}, false);
+
+// Get the position of a touch relative to the canvas
+function getTouchPos(canvasDom, touchEvent) {
+    var rect = canvasDom.getBoundingClientRect();
+    return {
+        x: touchEvent.touches[0].clientX - rect.left,
+        y: touchEvent.touches[0].clientY - rect.top
+    };
+}
+
+
+
+
      //Al soltar el click (dentro o fuera del canvas) enviamos orden de terminar el trazo
      window.addEventListener("mouseup",function(coord){
 
@@ -89,6 +129,10 @@ registroFrm.submit(function(e){
          }
 
      },false);
+
+
+
+
 
 
  }
@@ -122,7 +166,7 @@ registroFrm.submit(function(e){
     socket.on('limpiar',limpiarPizarra);
 
     socket.on('usuarios', function(data){
-        var contenido = '<h2>Conectados</h2> <ul>';
+        var contenido = '<h2>user</h2> <ul>';
 
         for(i=0;i<data.length;i++){
             contenido += '<li id='+data[i].nombre+'>'+data[i].nombre + '</li>';

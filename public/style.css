@@ -1,0 +1,60 @@
+body{
+    background-color: whitesmoke;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    overscroll-behavior-y: contain;
+}
+.btn{
+    display: inline-block;
+    background-color: #333;
+    border-radius: 5px;
+    border : none;
+    padding: 15px;
+    color : white;
+    cursor:pointer;
+}
+.rojo{
+    background-color: red;
+}
+.amarillo{
+    background-color: #FFD700;
+}
+.azul{
+    background-color: #00BFFF;
+}
+.verde{
+    background-color: #002F27;
+}
+.blanco{
+    background-color: white;
+    color: black;
+}
+#canvas{
+    padding-top: 10px;
+}
+#contenido{
+    display:none;
+}
+#opciones{
+    float: left;
+    background-color: #999;
+    padding: 1%;
+    margin-left: 15px;
+    border-radius: 5px;
+    color:white;
+}
+#opciones a{
+    text-decoration: none;
+    font-size: 11px;
+
+}
+#listaUsuarios{
+    float: right;
+    background-color: #888;
+    padding: 1%;
+    margin-left: 15px;
+    border-radius: 5px;
+    color:black;
+}
+.activo{
+    background-color: orangered;
+}
